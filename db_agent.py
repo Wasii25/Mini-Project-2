@@ -306,30 +306,68 @@ SQL Query:"""
         if count == 0:
             return "I couldn't find any results for your question."
 
-        # QUICK MODE: Skip LLM formatting for simple queries
-        # Just format the data directly
-        if count == 1:
-            row = rows[0]
-            # Format single row nicely
-            parts = [f"{k}: {v}" for k, v in row.items() if v is not None]
-            return f"Found 1 result - {', '.join(parts)}"
+        # Detect what type of data we have
+        if not rows:
+            return "No results found."
 
-        elif count <= 10:
-            # Format multiple rows as a simple list
-            if "first_name" in rows[0] and "last_name" in rows[0]:
-                names = [f"{r['first_name']} {r['last_name']}" for r in rows]
-                return f"Found {count} results: {', '.join(names)}"
+        first_row = rows[0]
+        columns = list(first_row.keys())
+
+        # CONSISTENT FORMATTING FOR ALL QUERIES
+
+        # Case 1: Single value (like COUNT)
+        if count == 1 and len(columns) == 1:
+            value = first_row[columns[0]]
+            return f"Result: {value}"
+
+        # Case 2: Name columns (first_name + last_name)
+        if "first_name" in columns and "last_name" in columns:
+            names = [f"{row['first_name']} {row['last_name']}" for row in rows]
+            if count == 1:
+                return f"Found 1 student: {names[0]}"
             else:
-                # Generic formatting
-                return f"Found {count} results:\n" + "\n".join(
-                    [str(row) for row in rows[:5]]
-                )
+                return f"Found {count} students: {', '.join(names)}"
 
+        # Case 3: Single meaningful column (like table_name, code, title)
+        if len(columns) == 1:
+            col_name = columns[0]
+            values = [str(row[col_name]) for row in rows]
+
+            # Make the label natural based on column name
+            if "name" in col_name:
+                label = col_name.replace("_", " ").replace("name", "names")
+            else:
+                label = col_name.replace("_", " ") + "s"
+
+            if count == 1:
+                return f"Found 1 result: {values[0]}"
+            else:
+                return f"Found {count} results: {', '.join(values)}"
+
+        # Case 4: Two columns (like code + title)
+        if len(columns) == 2:
+            formatted = [f"{row[columns[0]]} - {row[columns[1]]}" for row in rows]
+            if count == 1:
+                return f"Found 1 result: {formatted[0]}"
+            elif count <= 10:
+                return f"Found {count} results: {', '.join(formatted)}"
+            else:
+                preview = ", ".join(formatted[:5])
+                return f"Found {count} results: {preview}, and {count - 5} more"
+
+        # Case 5: Multiple columns (complex data)
+        if count <= 3:
+            # Show all data for small result sets
+            lines = []
+            for i, row in enumerate(rows, 1):
+                parts = [f"{k}: {v}" for k, v in row.items() if v is not None]
+                lines.append(f"Result {i}: {', '.join(parts)}")
+            return "\n".join(lines)
         else:
-            # Many results - just summarize
-            return f"Found {count} results. Showing first few:\n" + "\n".join(
-                [str(row) for row in rows[:3]]
-            )
+            # Summarize for large result sets
+            sample = rows[0]
+            parts = [f"{k}: {v}" for k, v in sample.items() if v is not None]
+            return f"Found {count} results. Example: {', '.join(parts)}"
 
         # OLD SLOW VERSION (commented out):
         # Prepare summary
@@ -436,7 +474,7 @@ async def main():
     agent = PostgresSQLAgent(model_name="llama3.2:3b", verbose=verbose_mode)
 
     try:
-        await agent.connect_mcp()
+        await agent.connect_mcp(verbose=verbose_mode)
         await agent.interactive_mode(verbose=verbose_mode)
     except Exception as e:
         print(f"\nFatal error: {e}")
