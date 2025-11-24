@@ -1,0 +1,17 @@
+# Vosk models
+vosk-model-small-en-us-0.15/
+vosk-model-small-en-us-0.15.zip.1
+
+# audio files generated
+*.wav
+*.mp3
+
+# python env
+.venv/
+venv/
+env/
+
+# caches
+__pycache__/
+*.pyc
+
