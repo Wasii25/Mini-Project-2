@@ -1,9 +1,3 @@
-#!/usr/bin/env python3
-"""
-SQL Agent using Official PostgreSQL MCP Server
-100% offline after initial setup
-"""
-
 import asyncio
 import json
 import re
@@ -51,7 +45,7 @@ class PostgresSQLAgent:
 
     async def connect_mcp(self):
         """Connect to official PostgreSQL MCP server"""
-        print("🔌 Starting official PostgreSQL MCP server...")
+        print(" Starting official PostgreSQL MCP server...")
 
         # Use the official MCP server
         server_params = StdioServerParameters(
