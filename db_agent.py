@@ -474,7 +474,7 @@ async def main():
     agent = PostgresSQLAgent(model_name="llama3.2:3b", verbose=verbose_mode)
 
     try:
-        await agent.connect_mcp(verbose=verbose_mode)
+        await agent.connect_mcp()
         await agent.interactive_mode(verbose=verbose_mode)
     except Exception as e:
         print(f"\nFatal error: {e}")
