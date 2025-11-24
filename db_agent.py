@@ -74,14 +74,14 @@ class PostgresSQLAgent:
 
             # Get available tools
             tools = await self.session.list_tools()
-            print(f"✅ Connected to official MCP server")
-            print(f"📦 Available tools: {[t.name for t in tools.tools]}")
+            print(f" Connected to official MCP server")
+            print(f" Available tools: {[t.name for t in tools.tools]}")
 
             # Get schema
             await self._load_schema()
 
         except Exception as e:
-            print(f"❌ Failed to connect to MCP server: {e}")
+            print(f" Failed to connect to MCP server: {e}")
             print("\nTroubleshooting:")
             print(
                 "1. Check if mcp-server-postgres is installed: which mcp-server-postgres"
